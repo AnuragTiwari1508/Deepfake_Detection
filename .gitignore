@@ -33,7 +33,8 @@ env/
 
 # Project Specific
 data/
-checkpoints/
+checkpoints/checkpoint_last.pth
+checkpoints/logs
 logs/
 output/
 *.pth
