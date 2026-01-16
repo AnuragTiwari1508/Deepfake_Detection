@@ -27,6 +27,11 @@ def preprocess_face(face_img, fft_processor, transform):
 
 def inference(video_path, model_path, config_path="config.yaml"):
     config = load_config(config_path)
+    # For inference we do not need to download ImageNet weights; the checkpoint
+    # already contains trained parameters. Disable pretrained to avoid large
+    # downloads and speed up cold starts (especially on cloud hosts).
+    if 'model' in config and 'pretrained' in config['model']:
+        config['model']['pretrained'] = False
     device = torch.device(config['train']['device'] if torch.cuda.is_available() else "cpu")
     
     # Load Model
