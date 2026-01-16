@@ -785,6 +785,7 @@
 
   <script>
     const { createApp } = Vue;
+    const BACKEND_URL = "https://deepfake-detection-6puj.onrender.com";
 
     createApp({
       data() {
@@ -892,7 +893,7 @@
           try {
             const form = new FormData();
             form.append("file", this.file);
-            const response = await fetch("http://localhost:8000/detect", {
+            const response = await fetch(BACKEND_URL + "/detect", {
               method: "POST",
               body: form
             });
@@ -919,7 +920,7 @@
         },
         async checkBackendStatus() {
           try {
-            const response = await fetch("http://localhost:8000/");
+            const response = await fetch(BACKEND_URL + "/");
             if (!response.ok) {
               this.backendStatus = "offline";
               return;
