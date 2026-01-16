@@ -33,9 +33,8 @@ env/
 
 # Project Specific
 data/
-checkpoints/checkpoint_last.pth
-checkpoints/logs
+checkpoints/
+!checkpoints/best_model.pth
 logs/
 output/
-*.pth
 *.DS_Store
