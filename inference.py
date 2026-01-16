@@ -78,7 +78,8 @@ def inference(video_path, model_path, config_path="config.yaml"):
     result = {
         "label": label,
         "confidence": float(avg_prob),
-        "frame_count": len(faces)
+        "frame_count": len(faces),
+        "frame_probs": frame_probs
     }
     
     # Log low confidence

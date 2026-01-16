@@ -21,15 +21,19 @@ A robust deep learning-based system for detecting manipulated facial videos (Dee
 Deepfake_Detection/
 ├── config.yaml                 # Central configuration for Data, Model, and Training
 ├── train.py                    # Main training script
-├── inference.py                # Script for running inference on single videos/images
+├── inference.py                # Script for running inference on videos
 ├── evaluate.py                 # Script for evaluating model on test set
-├── requirements.txt            # Python dependencies
+├── requirements.txt            # Python dependencies (includes FastAPI and Uvicorn)
 ├── preprocessing/
 │   ├── build_dfd_dataset.py    # Extracts faces and builds balanced datasets
 │   ├── face_detect.py          # MTCNN-based face detection wrapper
 │   └── fft.py                  # FFT feature extraction logic
 ├── models/
 │   └── fusion.py               # Dual-stream model definition
+├── backend/
+│   └── main.py                 # FastAPI service exposing /detect endpoint
+├── frontend/
+│   └── index.html              # Vue-based single-page UI for video upload and insights
 └── checkpoints/                # Saved models and training states
 ```
 
@@ -81,14 +85,98 @@ python train.py
 - **Checkpoints**: Models are saved to `./checkpoints/`. The script automatically resumes from the latest checkpoint if interrupted.
 - **Pause Training**: Create a file named `PAUSE` in the `./checkpoints/` directory to safely stop training after the current epoch.
 
-## 🔍 Inference
+## 🔍 Inference (CLI)
 
-To run detection on a specific image or video:
+To run detection on a specific video directly from Python:
 
 ```bash
-python inference.py --input path/to/video.mp4
+python inference.py --video path/to/video.mp4 --model checkpoints/best_model.pth
 ```
-*(Note: Ensure `inference.py` is configured to load the best checkpoint)*
+
+This prints a JSON blob like:
+
+```json
+{
+  "label": "FAKE",
+  "confidence": 0.87,
+  "frame_count": 42,
+  "frame_probs": [0.81, 0.85, 0.89, ...]
+}
+```
+
+Where:
+- `label` is the final decision (REAL / FAKE / UNKNOWN).
+- `confidence` is the aggregated deepfake probability across frames.
+- `frame_probs` are per-frame probabilities used for more detailed analysis.
+
+## 🌐 Backend API (FastAPI)
+
+For serving the model over HTTP, a FastAPI service wraps `inference.py`.
+
+From the project root:
+
+```bash
+.\.venv\Scripts\activate
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
+```
+
+Endpoints:
+
+- `GET /`  
+  Health check and model status:
+  ```json
+  {
+    "status": "Deepfake Detection API is running",
+    "model_loaded": true
+  }
+  ```
+
+- `POST /detect`  
+  - Request: `multipart/form-data` with field `file` (video: mp4, avi, mov, mkv, webm).
+  - Response (example):
+    ```json
+    {
+      "label": "FAKE",
+      "confidence": 0.8731,
+      "frame_count": 42,
+      "frame_probs": [0.81, 0.85, 0.89, ...]
+    }
+    ```
+
+The backend automatically selects the best checkpoint from `checkpoints/` (prefers `best_model.pth`, otherwise latest `*.pth`).
+
+## 💻 Web UI (Vue Frontend)
+
+A modern single-page UI is provided in `frontend/index.html`. It lets you:
+
+- Upload a video for deepfake detection.
+- See a rich result view with:
+  - Final prediction label and confidence.
+  - Frames analyzed.
+  - Prediction stability (based on frame-level variance).
+  - Confidence bar and a mini bar chart over sampled frames.
+- Experience a full-screen loading overlay while inference runs.
+
+### Running the dashboard locally
+
+1. Start the backend (from project root):
+   ```bash
+   .\.venv\Scripts\activate
+   uvicorn backend.main:app --host 0.0.0.0 --port 8000
+   ```
+
+2. Serve the frontend (optional, but recommended instead of opening the file directly):
+   ```bash
+   cd frontend
+   python -m http.server 5173
+   ```
+
+3. Open the UI in your browser:
+   ```text
+   http://localhost:5173
+   ```
+
+The frontend connects to the backend at `http://localhost:8000/detect` by default.
 
 ## ⚙️ Configuration (`config.yaml`)
 
