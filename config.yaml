@@ -1,0 +1,35 @@
+# Data Configuration
+data:
+  frame_fps: 5
+  image_size: 224
+  batch_size: 32
+  num_workers: 4
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+# Model Configuration
+model:
+  rgb_backbone: "efficientnet-b0"
+  rgb_feature_dim: 1280
+  fft_feature_dim: 512
+  dropout_rate: 0.5
+  pretrained: true
+
+# Training Configuration
+train:
+  epochs: 20
+  learning_rate_head: 1e-4
+  learning_rate_backbone: 1e-5
+  weight_decay: 1e-4
+  label_smoothing: 0.1
+  device: "cuda" # or "cpu"
+  save_dir: "./checkpoints"
+  log_interval: 10
+  resume: true
+  pause_file: "./checkpoints/PAUSE"
+
+# Inference Configuration
+inference:
+  threshold: 0.5
+  batch_size: 1
